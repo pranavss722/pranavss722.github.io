@@ -436,7 +436,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click'
 (async function(){
   const c=document.getElementById('mediumArticles');
   try{
-    const r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://medium.com/feed/@pranavss722'));
+    const r=await fetch('https://corsproxy.io/?'+encodeURIComponent('https://medium.com/feed/@pranavss722'));
     const xml=await r.text();
     const parser=new DOMParser();
     const doc=parser.parseFromString(xml,'text/xml');
