@@ -452,7 +452,34 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click'
           <div class="article-info"><div class="article-date">${dt}</div><div class="article-title">${item.title}</div><div class="article-excerpt">${exc}</div></div>`;
         c.appendChild(card)})
     }else{c.innerHTML='<p class="article-loading">No articles yet — check back soon.</p>'}
-  }catch(e){c.innerHTML='<p class="article-loading">No articles yet — <a href="https://medium.com/@pranavss722" target="_blank">visit Medium &#8594;</a></p>'}
+  }catch(e){
+    try{
+      const r2=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://medium.com/feed/@pranavss722'));
+      const xml=await r2.text();
+      const parser=new DOMParser();
+      const doc=parser.parseFromString(xml,'text/xml');
+      const items=doc.querySelectorAll('item');
+      if(items.length>0){
+        c.innerHTML='';
+        items.forEach((item,i)=>{
+          if(i>=6)return;
+          const title=item.querySelector('title')?.textContent||'';
+          const link=item.querySelector('link')?.textContent||'';
+          const pubDate=item.querySelector('pubDate')?.textContent||'';
+          const desc=item.querySelector('description')?.textContent||'';
+          let thumb='';
+          const imgM=desc.match(/<img[^>]+src="([^"]+)"/);
+          if(imgM)thumb=imgM[1];
+          const div=document.createElement('div');div.innerHTML=desc;
+          const txt=div.textContent||'';const exc=txt.substring(0,150).trim()+'...';
+          const dt=pubDate?new Date(pubDate).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}):'';
+          const card=document.createElement('a');card.className='article-card';card.href=link;card.target='_blank';card.rel='noopener';
+          card.innerHTML=`${thumb?`<img class="article-thumb" src="${thumb}" alt="" loading="lazy">`:''}
+            <div class="article-info"><div class="article-date">${dt}</div><div class="article-title">${title}</div><div class="article-excerpt">${exc}</div></div>`;
+          c.appendChild(card)});
+      }else{c.innerHTML='<p class="article-loading">No articles yet — <a href="https://medium.com/@pranavss722" target="_blank">visit Medium &#8594;</a></p>'}
+    }catch(e2){c.innerHTML='<p class="article-loading">No articles yet — <a href="https://medium.com/@pranavss722" target="_blank">visit Medium &#8594;</a></p>'}
+  }
 })();
 </script>
 </body>
