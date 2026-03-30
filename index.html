@@ -436,30 +436,22 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click'
 (async function(){
   const c=document.getElementById('mediumArticles');
   try{
-    const r=await fetch('https://corsproxy.io/?'+encodeURIComponent('https://medium.com/feed/@pranavss722'));
-    const xml=await r.text();
-    const parser=new DOMParser();
-    const doc=parser.parseFromString(xml,'text/xml');
-    const items=doc.querySelectorAll('item');
-    if(items.length>0){
+    const r=await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://medium.com/feed/@pranavss722');
+    const d=await r.json();
+    if(d.status==='ok'&&d.items&&d.items.length>0){
       c.innerHTML='';
-      items.forEach((item,i)=>{
-        if(i>=6)return;
-        const title=item.querySelector('title').textContent||'';
-        const link=item.querySelector('link').textContent||'';
-        const pubDate=item.querySelector('pubDate').textContent||'';
-        const desc=item.querySelector('description').textContent||'';
+      d.items.slice(0,6).forEach(item=>{
         let thumb='';
-        const imgM=desc.match(/<img[^>]+src="([^"]+)"/);
-        if(imgM)thumb=imgM[1];
-        const div=document.createElement('div');div.innerHTML=desc;
+        const m=item.content?item.content.match(/<img[^>]+src="([^"]+)"/):null;
+        if(m)thumb=m[1];else if(item.thumbnail)thumb=item.thumbnail;
+        const div=document.createElement('div');div.innerHTML=item.content||item.description||'';
         const txt=div.textContent||'';const exc=txt.substring(0,150).trim()+'...';
-        const dt=pubDate?new Date(pubDate).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}):'';
-        const card=document.createElement('a');card.className='article-card';card.href=link;card.target='_blank';card.rel='noopener';
+        const dt=new Date(item.pubDate).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+        const card=document.createElement('a');card.className='article-card';card.href=item.link;card.target='_blank';card.rel='noopener';
         card.innerHTML=`${thumb?`<img class="article-thumb" src="${thumb}" alt="" loading="lazy">`:''}
-          <div class="article-info"><div class="article-date">${dt}</div><div class="article-title">${title}</div><div class="article-excerpt">${exc}</div></div>`;
-        c.appendChild(card)});
-    }else{c.innerHTML='<p class="article-loading">No articles found.</p>'}
+          <div class="article-info"><div class="article-date">${dt}</div><div class="article-title">${item.title}</div><div class="article-excerpt">${exc}</div></div>`;
+        c.appendChild(card)})
+    }else{c.innerHTML='<p class="article-loading">No articles yet — <a href="https://medium.com/@pranavss722" target="_blank" style="color:var(--red)">visit Medium &#8594;</a></p>'}
   }catch(e){c.innerHTML='<p class="article-loading">Could not load articles — <a href="https://medium.com/@pranavss722" target="_blank" style="color:var(--red)">visit Medium &#8594;</a></p>'}
 })();
 </script>
